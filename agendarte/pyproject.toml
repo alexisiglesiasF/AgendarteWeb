@@ -1,0 +1,60 @@
+[tool.poetry]
+package-mode = false
+
+[project]
+name = "agendarte"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = "<4.0,>=3.10"
+dependencies = [
+    "sqlalchemy (>=2.0.42,<3.0)",
+    "pydantic (>=2.11.7,<3.0)",
+    "tai-alphi (>=2.1.0,<3.0)",
+    "rich (>=14.0.0,<15.0)"
+]
+
+# ═════════════════════════════════════════════════════════════════════════
+#  Extras: lo que necesita el CLIENTE GENERADO en tiempo de ejecución
+# ═════════════════════════════════════════════════════════════════════════
+#
+# No son los extras de tai-sql. tai-sql es una herramienta de desarrollo y no está
+# instalada donde se despliega este proyecto, así que el código generado declara
+# aquí sus propias dependencias.
+#
+# No hace falta elegirlos a mano: `tai-sql install` lee el schema y ejecuta
+# `poetry install --extras` con los que correspondan.
+[project.optional-dependencies]
+# Drivers síncronos (elige el de tu datasource)
+postgresql = ["psycopg2-binary (>=2.9.10,<3.0)"]
+mysql = ["pymysql (>=1.1.1,<2.0)"]
+sqlserver = ["pyodbc (>=5.2.0,<6.0)"]
+bigquery = ["sqlalchemy-bigquery (>=1.11.0,<2.0)"]
+
+# Drivers asíncronos, si generas el cliente con mode='async' o 'both'.
+# BigQuery no tiene: su dialecto es solo síncrono.
+postgresql-async = ["asyncpg (>=0.30.0,<1.0)"]
+mysql-async = ["aiomysql (>=0.2.0,<1.0)"]
+sqlserver-async = ["aioodbc (>=0.5.0,<1.0)"]
+
+# Funcionalidades opcionales
+encryption = ["cryptography (>=45.0.4,<46.0)"]
+# column(hash=True): el cliente hashea al escribir y verifica al comprobar.
+hashing = ["bcrypt (>=4.0.0,<6.0)"]
+vectors = ["pgvector (>=0.4.0,<1.0)"]
+# Encoders de columnas vectoriales. El cliente generado los implementa sobre
+# langchain, así que estas son las librerías que importa de verdad; deja solo la
+# del proveedor que uses:
+#   SentenceTransformerEncoder → langchain-huggingface
+#   OpenAIEncoder / AzureOpenAIEncoder → langchain-openai
+#   GoogleEncoder → langchain-google-genai
+vectors-encoding = [
+    "pgvector (>=0.4.0,<1.0)",
+    "langchain-huggingface (>=0.1.0)",
+    "langchain-openai (>=0.3.0)",
+    "langchain-google-genai (>=2.0.0)",
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

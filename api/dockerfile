@@ -1,0 +1,70 @@
+FROM python:3.11-slim
+
+# Variables de comportamiento del build — no cambian entre deploys
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/root/.local/bin:${PATH}" \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    VIRTUAL_ENV=/usr/local \
+    TZ=${TZ:-Europe/Madrid}
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libffi-dev \
+        openssl \
+        openssh-server \
+        bash \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# SSH en puerto 2222 — requerido por Azure App Service para "SSH into container"
+# En on-premise el entrypoint solo lo arranca si AZURE_ENV=true
+RUN echo "root:Docker!" | chpasswd \
+    && ssh-keygen -A \
+    && sed -i "s/#Port 22/Port 2222/" /etc/ssh/sshd_config \
+    && echo "PermitRootLogin yes" >> /etc/ssh/sshd_config \
+    && echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+
+# Instalar version fija de Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=2.1.3 python3 -
+
+WORKDIR /app
+
+COPY pyproject.toml poetry.lock* ./
+RUN poetry install --no-root --only main
+
+# El paquete de la API, en la raíz de /app: sus imports son absolutos (`api.routers…`).
+COPY api ./api
+
+# --- Secrets de build-time (pasar via --build-arg en CI/CD) ---
+# Declarados al final para no invalidar la cache de capas anteriores
+ARG MAIN_DATABASE_URL
+ARG MAIN_KEYCLOAK_URL
+ARG KEYCLOAK_API_CLIENT_SECRET
+ARG SECRET_KEY
+ARG API_DOCS_PWD
+ARG PORT=80
+ARG RBAC_ENABLED=true
+
+ENV MAIN_DATABASE_URL=${MAIN_DATABASE_URL} \
+    MAIN_KEYCLOAK_URL=${MAIN_KEYCLOAK_URL} \
+    KEYCLOAK_API_CLIENT_SECRET=${KEYCLOAK_API_CLIENT_SECRET} \
+    SECRET_KEY=${SECRET_KEY} \
+    API_DOCS_PWD=${API_DOCS_PWD} \
+    PORT=${PORT} \
+    RBAC_ENABLED=${RBAC_ENABLED}
+
+# 80 = app, 2222 = SSH Azure
+EXPOSE 80 2222
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh"]
+
+HEALTHCHECK --interval=60s --timeout=3s --start-period=10s --retries=5 \
+  CMD curl -f http://localhost:${PORT}/health || exit 1

@@ -1,0 +1,147 @@
+/* Generado por tai-api: este fichero lo reescribe `tai-api generate`. */
+/* La paleta de la documentación, la barra común, la página del modelo de datos y el visor de
+   diagramas.
+
+   La paleta son las variables de Scalar (`theme: none` en /docs): así la referencia, la barra y
+   las demás páginas tienen los mismos colores. El modo lo lleva una clase en el <body>
+   (`light-mode` / `dark-mode`): en /docs la pone Scalar con su conmutador, que guarda la
+   elección en `localStorage.colorMode`, y las demás páginas la leen de ahí. Se declara sobre
+   `body.…` y no sobre `.…` porque Scalar inyecta sus estilos después de este fichero: con la
+   misma especificidad, ganarían los suyos. */
+
+/* En claro, crema y no blanco, con el texto en un gris cálido: cansa menos la vista. El
+   secundario (el del índice) mantiene un contraste de 5:1 sobre el fondo. */
+body.light-mode {
+  --scalar-color-1: #3b3a36;
+  --scalar-color-2: rgba(60, 50, 30, 0.72);
+  --scalar-color-3: rgba(60, 50, 30, 0.5);
+  --scalar-color-accent: #0a85d1;
+  --scalar-background-1: #fbf6e4;
+  --scalar-background-2: #f3eddb;
+  --scalar-background-3: #ece8d6;
+  --scalar-background-accent: #5369d20f;
+  --scalar-border-color: rgba(90, 70, 20, 0.12);
+}
+body.dark-mode {
+  --scalar-color-1: rgba(255, 255, 255, 0.81);
+  --scalar-color-2: rgba(255, 255, 255, 0.443);
+  --scalar-color-3: rgba(255, 255, 255, 0.282);
+  --scalar-color-accent: #8ab4f8;
+  --scalar-background-1: #202020;
+  --scalar-background-2: #272727;
+  --scalar-background-3: #333333;
+  --scalar-background-accent: #8ab4f81f;
+  --scalar-border-color: rgba(255, 255, 255, 0.08);
+}
+body.light-mode, body.dark-mode {
+  --scalar-sidebar-background-1: var(--scalar-background-1);
+  --scalar-sidebar-item-hover-color: currentColor;
+  --scalar-sidebar-item-hover-background: var(--scalar-background-2);
+  --scalar-sidebar-item-active-background: var(--scalar-background-2);
+  --scalar-sidebar-border-color: var(--scalar-border-color);
+  --scalar-sidebar-color-1: var(--scalar-color-1);
+  --scalar-sidebar-color-2: var(--scalar-color-2);
+  --scalar-sidebar-color-active: var(--scalar-color-2);
+  --scalar-sidebar-search-background: var(--scalar-background-2);
+  --scalar-sidebar-search-border-color: var(--scalar-border-color);
+  --scalar-sidebar-search-color: var(--scalar-color-3);
+}
+
+:root { --bar-height: 56px; --subbar-height: 44px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--scalar-background-1); color: var(--scalar-color-1);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── La barra ─────────────────────────────────────────────────────────────── */
+
+.tai-bar {
+  position: fixed; inset: 0 0 auto 0; height: var(--bar-height); z-index: 1000;
+  display: flex; align-items: center; gap: 24px; padding: 0 20px;
+  background: var(--scalar-background-1); color: var(--scalar-color-1);
+  border-bottom: 1px solid var(--scalar-border-color);
+}
+.tai-brand { display: flex; align-items: baseline; gap: 10px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+.tai-version {
+  font-size: 11px; font-weight: 600; color: var(--scalar-color-2);
+  border: 1px solid var(--scalar-border-color); border-radius: 999px; padding: 1px 8px;
+}
+.tai-nav { display: flex; align-items: center; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tai-nav a {
+  color: var(--scalar-color-2); text-decoration: none; font-size: 14px; padding: 8px 12px;
+  border-radius: 8px; white-space: nowrap;
+}
+.tai-nav a:hover { color: var(--scalar-color-1); background: var(--scalar-background-2); }
+.tai-nav a.active { color: var(--scalar-color-1); box-shadow: inset 0 -2px 0 var(--scalar-color-accent); border-radius: 0; }
+.tai-spacer { flex: 1; }
+.tai-logo { display: flex; align-items: center; flex-shrink: 0; }
+.tai-logo img { display: block; height: 28px; width: auto; }
+.tai-main { padding-top: var(--bar-height); }
+
+/* ── El índice de /docs: el bloque (sistema, autenticación, cada schema) por encima de sus
+      routers, y cada router por su tabla ─────────────────────────────────── */
+
+.references-sidebar li[data-sidebar-id*="/tag-group/"] > div,
+aside li[data-sidebar-id*="/tag-group/"] > div {
+  font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--scalar-color-1); margin-top: 14px;
+}
+
+/* ── El modelo de datos ───────────────────────────────────────────────────── */
+
+.tai-subbar {
+  position: fixed; top: var(--bar-height); left: 0; right: 0; height: var(--subbar-height); z-index: 999;
+  display: flex; align-items: center; gap: 6px; padding: 0 20px; overflow-x: auto;
+  background: var(--scalar-background-2); border-bottom: 1px solid var(--scalar-border-color);
+}
+.tai-subbar span { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--scalar-color-2); margin-right: 6px; }
+.tai-subbar a {
+  font-size: 13px; color: var(--scalar-color-2); text-decoration: none; padding: 5px 12px;
+  border-radius: 999px; border: 1px solid transparent; white-space: nowrap;
+}
+.tai-subbar a:hover { color: var(--scalar-color-1); border-color: var(--scalar-border-color); }
+.tai-subbar a.active { color: var(--scalar-color-1); background: var(--scalar-background-1); border-color: var(--scalar-border-color); font-weight: 600; }
+.tai-frame { display: block; width: 100%; height: calc(100vh - var(--bar-height)); border: 0; }
+.tai-with-subbar { padding-top: calc(var(--bar-height) + var(--subbar-height)); }
+.tai-with-subbar .tai-frame { height: calc(100vh - var(--bar-height) - var(--subbar-height)); }
+
+/* ── El Swagger: siempre en claro, sin la descripción (la portada ya está en /docs) y con el
+      modelo de datos en su cabecera ──────────────────────────────────────── */
+
+#swagger-ui .info .description { display: none; }
+#swagger-ui .scheme-container { background: var(--scalar-background-2); box-shadow: none; border-block: 1px solid var(--scalar-border-color); }
+.tai-model { margin: 8px 0 28px; font-family: inherit; }
+.tai-model h3 { font-size: 18px; margin: 0 0 4px; color: var(--scalar-color-1); }
+.tai-model p { margin: 0 0 12px; color: var(--scalar-color-2); font-size: 13px; }
+.tai-model details { border: 1px solid var(--scalar-border-color); border-radius: 10px; margin-bottom: 10px; background: var(--scalar-background-1); }
+.tai-model summary { cursor: pointer; padding: 10px 14px; font-weight: 600; color: var(--scalar-color-1); }
+.tai-thumb {
+  display: block; width: 100%; padding: 12px; margin: 0; border: 0; border-top: 1px solid var(--scalar-border-color);
+  background: var(--scalar-background-2); cursor: zoom-in; border-radius: 0 0 10px 10px;
+}
+.tai-thumb img { display: block; max-width: 100%; max-height: 420px; margin: 0 auto; }
+.tai-thumb:hover { background: var(--scalar-background-3); }
+
+/* ── El visor ─────────────────────────────────────────────────────────────── */
+
+.tai-viewer { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; background: rgba(15, 23, 42, .94); }
+.tai-viewer-bar {
+  display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #e2e8f0;
+  font-size: 14px; background: #0f172a; border-bottom: 1px solid #1e293b;
+}
+.tai-viewer-bar strong { font-weight: 650; margin-right: auto; }
+.tai-viewer-bar button, .tai-viewer-bar a {
+  font: inherit; font-size: 13px; color: #e2e8f0; background: #1e293b; border: 1px solid #334155;
+  border-radius: 8px; padding: 6px 10px; cursor: pointer; text-decoration: none; min-width: 36px; text-align: center;
+}
+.tai-viewer-bar button:hover, .tai-viewer-bar a:hover { background: #334155; }
+.tai-viewer-zoom { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; color: #94a3b8; }
+.tai-viewer-stage { position: relative; flex: 1; overflow: hidden; cursor: grab; touch-action: none; }
+.tai-viewer-stage.dragging { cursor: grabbing; }
+.tai-viewer-stage img {
+  position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; user-select: none;
+  background: #fff; border-radius: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+}
+.tai-viewer-hint { padding: 6px 16px 10px; color: #64748b; font-size: 12px; text-align: center; }
