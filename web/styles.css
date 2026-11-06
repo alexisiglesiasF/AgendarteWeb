@@ -1,0 +1,682 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
+:root {
+    font-family: "DM Sans", sans-serif;
+    color: #29333a;
+    background: #f5f7f8;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.barra-superior {
+    display: flex;
+    height: 74px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4.5%;
+    background: #fff;
+}
+
+.marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    color: #29333a;
+    font-family: "Manrope", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.icono-marca {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: 11px;
+    background: #e8f3f0;
+    color: #286c64;
+    font-size: 1.4rem;
+}
+
+.frase-superior,
+.pie-pagina {
+    color: #829098;
+    font-size: 0.78rem;
+}
+
+.navegacion-superior {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.navegacion-superior a {
+    color: #286c64;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.navegacion-superior a:hover {
+    text-decoration: underline;
+}
+
+.pagina-registro {
+    display: grid;
+    width: min(100%, 1160px);
+    min-height: calc(100vh - 124px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(48px, 11vw, 120px);
+    margin: 0 auto;
+    padding: 18px 30px;
+}
+
+.panel-presentacion {
+    display: flex;
+    min-height: 620px;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 9%;
+    border-radius: 20px;
+    background: #e9f3f0;
+}
+
+.etiqueta {
+    margin: 0;
+    color: #34766d;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.texto-presentacion {
+    margin: 40px 0;
+}
+
+.texto-presentacion h1 {
+    margin: 0;
+    color: #263139;
+    font-family: "Manrope", sans-serif;
+    font-size: clamp(2.4rem, 4vw, 3.25rem);
+    font-weight: 800;
+    letter-spacing: -0.055em;
+    line-height: 1.22;
+}
+
+.texto-presentacion p {
+    max-width: 390px;
+    margin: 28px 0 0;
+    color: #69817d;
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.categorias {
+    margin: 0;
+    padding-top: 21px;
+    border-top: 1px solid #c9ded8;
+    color: #34766d;
+    font-size: 0.88rem;
+    text-align: center;
+}
+
+.categorias span {
+    padding: 0 5px;
+    color: #86aaa2;
+}
+
+.formulario-tarjeta {
+    width: 100%;
+    padding: 34px 32px 28px;
+    border: 1px solid #e0e6e9;
+    border-radius: 15px;
+    background: #fff;
+}
+
+.formulario-tarjeta h2 {
+    margin: 0;
+    color: #29333a;
+    font-family: "Manrope", sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.descripcion {
+    margin: 13px 0 26px;
+    color: #829098;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+form {
+    display: grid;
+    gap: 18px;
+}
+
+.campo {
+    display: grid;
+    gap: 7px;
+}
+
+label {
+    color: #36434a;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+input {
+    width: 100%;
+    min-height: 43px;
+    padding: 0 12px;
+    border: 1px solid #e0e6e9;
+    border-radius: 8px;
+    outline: none;
+    background: #fff;
+    color: #29333a;
+    font: inherit;
+    font-size: 0.88rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+input::placeholder {
+    color: #a3adb2;
+}
+
+input:focus {
+    border-color: #34766d;
+    box-shadow: 0 0 0 3px rgb(52 118 109 / 13%);
+}
+
+button {
+    min-height: 44px;
+    margin-top: 1px;
+    border: 0;
+    border-radius: 8px;
+    background: #286c64;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition: background 150ms ease, transform 150ms ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    background: #205a53;
+}
+
+button:focus-visible {
+    outline: 3px solid #9bc9bf;
+    outline-offset: 3px;
+}
+
+#mensaje {
+    min-height: 1.4em;
+    margin: 12px 0 0;
+    color: #526d68;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.pie-pagina {
+    min-height: 50px;
+    padding: 12px;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .pagina-registro {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 28px 6%;
+    }
+
+    .panel-presentacion {
+        min-height: 300px;
+        padding: 30px;
+    }
+
+    .texto-presentacion {
+        margin: 36px 0;
+    }
+
+    .texto-presentacion h1 {
+        font-size: clamp(2rem, 7vw, 2.8rem);
+    }
+
+    .formulario-tarjeta {
+        max-width: 520px;
+        justify-self: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .barra-superior {
+        height: 64px;
+        padding: 0 20px;
+    }
+
+    .frase-superior {
+        font-size: 0.68rem;
+    }
+
+    .pagina-registro {
+        padding: 18px 16px;
+    }
+
+    .panel-presentacion {
+        min-height: 270px;
+        padding: 24px;
+    }
+
+    .formulario-tarjeta {
+        padding: 28px 22px 22px;
+    }
+}
+
+.pagina-app {
+    background: #f5f7f8;
+}
+
+.barra-lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1;
+    display: flex;
+    width: 168px;
+    flex-direction: column;
+    padding: 20px 16px;
+    border-right: 1px solid #e8edef;
+    background: #fff;
+}
+
+.barra-lateral .marca {
+    gap: 9px;
+    font-size: 1.05rem;
+    white-space: nowrap;
+}
+
+.barra-lateral .icono-marca {
+    width: 32px;
+    height: 32px;
+}
+
+.navegacion-lateral {
+    display: grid;
+    gap: 8px;
+    margin-top: 40px;
+}
+
+.navegacion-lateral a {
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: #63727b;
+    font-size: 0.82rem;
+    text-decoration: none;
+}
+
+.navegacion-lateral a span {
+    width: 16px;
+    color: #758790;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.navegacion-lateral a:hover,
+.navegacion-lateral a.activo {
+    background: #e9f3f0;
+    color: #286c64;
+}
+
+.navegacion-lateral a.activo span {
+    color: #286c64;
+}
+
+.texto-lateral {
+    margin: auto 0 16px;
+    color: #829098;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.contenido-app {
+    min-height: 100vh;
+    margin-left: 168px;
+}
+
+.encabezado-app {
+    display: flex;
+    min-height: 68px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 28px;
+    background: #fff;
+}
+
+.encabezado-app h1 {
+    margin: 0;
+    color: #29333a;
+    font-family: "Manrope", sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+}
+
+.encabezado-app p {
+    margin: 3px 0 0;
+    color: #829098;
+    font-size: 0.72rem;
+}
+
+.usuario-actual {
+    color: #4a5961;
+    font-size: 0.78rem;
+}
+
+.contenido-evento {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+    padding: 24px 28px 36px;
+}
+
+.formulario-evento {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 22px;
+}
+
+.datos-evento,
+.finanzas-evento {
+    display: grid;
+    gap: 17px;
+}
+
+.campo-evento {
+    display: grid;
+    gap: 7px;
+}
+
+.campo-evento label,
+.solo-lectores {
+    color: #39464d;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.campo-evento label span,
+.nota-finanzas span {
+    color: #34766d;
+}
+
+.campo-evento input,
+.campo-evento select,
+.campo-evento textarea,
+.campos-financieros input,
+.campos-financieros select {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 11px;
+    border: 1px solid #e0e6e9;
+    border-radius: 8px;
+    outline: none;
+    background: #fff;
+    color: #354149;
+    font: inherit;
+    font-size: 0.82rem;
+}
+
+.campo-evento textarea {
+    min-height: 76px;
+    padding: 10px 11px;
+    resize: vertical;
+}
+
+.campo-evento input:focus,
+.campo-evento select:focus,
+.campo-evento textarea:focus,
+.campos-financieros input:focus,
+.campos-financieros select:focus {
+    border-color: #34766d;
+    box-shadow: 0 0 0 3px rgb(52 118 109 / 12%);
+}
+
+.campo-evento small {
+    color: #829098;
+    font-size: 0.68rem;
+}
+
+.fila-evento {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 100px;
+    gap: 10px;
+}
+
+.titulo-seccion {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: -8px;
+}
+
+.titulo-seccion h2 {
+    margin: 0;
+    color: #354149;
+    font-size: 0.94rem;
+}
+
+.titulo-seccion span {
+    color: #34766d;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.fila-financiera {
+    min-width: 0;
+    margin: 0;
+    padding: 11px 12px 12px;
+    border: 1px solid #e3e8eb;
+    border-radius: 11px;
+    background: #fff;
+}
+
+.fila-financiera legend {
+    padding: 0 4px;
+    color: #3a474e;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.campos-financieros {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1.5fr;
+    gap: 8px;
+}
+
+.campos-financieros input:first-of-type {
+    grid-column: 1 / -1;
+}
+
+.campos-financieros input,
+.campos-financieros select {
+    min-height: 38px;
+}
+
+.solo-lectores {
+    position: absolute;
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.boton-secundario,
+.boton-cancelar {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #e0e6e9;
+    border-radius: 8px;
+    background: #fff;
+    color: #286c64;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.boton-ancho {
+    width: 100%;
+}
+
+.boton-secundario span {
+    font-size: 1rem;
+}
+
+.boton-secundario:disabled,
+.boton-principal:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
+}
+
+.titulo-gastos {
+    margin-top: 4px;
+}
+
+.nota-finanzas {
+    margin: 0;
+    color: #829098;
+    font-size: 0.68rem;
+    line-height: 1.5;
+}
+
+.acciones-evento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.boton-principal {
+    min-height: 42px;
+    margin: 0;
+    border-radius: 8px;
+    background: #286c64;
+    color: #fff;
+    font-size: 0.78rem;
+}
+
+.boton-principal:disabled:hover {
+    transform: none;
+    background: #286c64;
+}
+
+.boton-cancelar {
+    color: #52636a;
+}
+
+.boton-cancelar:hover {
+    background: #f9fbfb;
+}
+
+.boton-cancelar:focus-visible,
+.boton-secundario:focus-visible {
+    outline: 3px solid #9bc9bf;
+    outline-offset: 3px;
+}
+
+.pagina-app .pie-pagina {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .barra-lateral {
+        width: 76px;
+        align-items: center;
+        padding: 18px 10px;
+    }
+
+    .barra-lateral .marca span:last-child,
+    .navegacion-lateral a:not(.activo),
+    .navegacion-lateral a.activo {
+        font-size: 0;
+    }
+
+    .navegacion-lateral {
+        width: 100%;
+    }
+
+    .navegacion-lateral a {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .navegacion-lateral a span {
+        font-size: 1rem;
+    }
+
+    .texto-lateral {
+        display: none;
+    }
+
+    .contenido-app {
+        margin-left: 76px;
+    }
+}
+
+@media (max-width: 680px) {
+    .formulario-evento {
+        grid-template-columns: 1fr;
+    }
+
+    .encabezado-app {
+        padding: 12px 18px;
+    }
+
+    .contenido-evento {
+        padding: 20px 16px 30px;
+    }
+
+    .datos-evento,
+    .finanzas-evento {
+        gap: 14px;
+    }
+
+    .finanzas-evento {
+        margin-top: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

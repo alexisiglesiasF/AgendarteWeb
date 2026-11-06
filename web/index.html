@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>Crear cuenta - AgendaArte</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header class="barra-superior">
+        <a class="marca" href="#" aria-label="AgendaArte, inicio">
+            <span class="icono-marca" aria-hidden="true">♪</span>
+            <span>AgendaArte</span>
+        </a>
+        <nav class="navegacion-superior" aria-label="Navegación principal">
+            <a href="evento.html">Crear evento</a>
+            <p class="frase-superior">Tu música, bien organizada.</p>
+        </nav>
+    </header>
+
+    <main class="pagina-registro">
+        <section class="panel-presentacion" aria-labelledby="titulo-presentacion">
+            <p class="etiqueta">TU ESPACIO DE TRABAJO MUSICAL</p>
+            <div class="texto-presentacion">
+                <h1 id="titulo-presentacion">Tu música,<br>bien organizada.</h1>
+                <p>Vuelve a tus proyectos, tu agenda y todo lo que está por sonar.</p>
+            </div>
+            <p class="categorias">Proyectos <span>·</span> Agenda <span>·</span> Repertorios</p>
+        </section>
+
+        <section class="formulario-tarjeta" aria-labelledby="titulo-formulario">
+            <h2 id="titulo-formulario">Crear cuenta</h2>
+            <p class="descripcion">Tu vida musical, en un solo lugar. Empieza con tus datos.</p>
+
+            <form>
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        placeholder="Tu nombre"
+                        autocomplete="given-name"
+                        required
+                    >
+                </div>
+
+                <div class="campo">
+                    <label for="apellido">Apellido</label>
+                    <input
+                        type="text"
+                        id="apellido"
+                        name="apellido"
+                        placeholder="Tu apellido"
+                        autocomplete="family-name"
+                        required
+                    >
+                </div>
+
+                <div class="campo">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="tu@email.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <button type="submit">Crear cuenta</button>
+            </form>
+
+            <p id="mensaje" role="status" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <footer class="pie-pagina">Tu música, bien organizada.</footer>
+</body>
+</html>

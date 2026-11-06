@@ -135,4 +135,5 @@ def _database(schema: str) -> Callable[[], Awaitable[None]]:
 #: `extensions.setup()`: `health.CHECKS["redis"] = mi_comprobacion`.
 CHECKS: Dict[str, Callable[[], Awaitable[None]]] = {
     "database.public": _database("public"),
+    "database.auth": _database("auth"),
 }

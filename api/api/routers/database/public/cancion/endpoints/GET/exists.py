@@ -1,9 +1,12 @@
-from fastapi import Query
+from fastapi import Query, Depends
 from typing import Optional, List
 from datetime import datetime
 
+from api.routers.auth import requires_permissions, build_rls_rules, AccessToken
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 
-from api.database.public import public_async_api
+from api.database.public import public_async_api, RLS
 from api.resources import APIResponse
 from .docs import EXISTS_RESPONSES, EXISTS_SUMMARY
 from ... import cancion_router
@@ -28,26 +31,30 @@ async def cancion_exists(
     min_updated_at: Optional[datetime] = Query(None, description="Valor mínimo para updated_at (incluido)"),
     max_updated_at: Optional[datetime] = Query(None, description="Valor máximo para updated_at (incluido)"),
     in_updated_by: Optional[List[str]] = Query(None, description="Filtrar por múltiples valores de updated_by"),
+    token: AccessToken = Depends(requires_permissions("read", "cancion")),
     _estricto: None = Depends(estricto("cancion", "exists")),
 ) -> APIResponse[bool]:
     """
     Verifica si existe al menos un cancion que coincida con los filtros.
     """
-    result = await public_async_api.cancion.exists(
-        in_id=in_id,
-        id_repertorio=id_repertorio,
-        in_id_repertorio=in_id_repertorio,
-        nombre=nombre,
-        in_nombre=in_nombre,
-        min_created_at=min_created_at,
-        max_created_at=max_created_at,
-        in_created_by=in_created_by,
-        min_updated_at=min_updated_at,
-        max_updated_at=max_updated_at,
-        in_updated_by=in_updated_by,
-    )
+    rls = build_rls_rules(token, "public", get_model_by_name, RLS)
+    with username_context(token.preferred_username):
+        result = await public_async_api.cancion.exists(
+            in_id=in_id,
+            id_repertorio=id_repertorio,
+            in_id_repertorio=in_id_repertorio,
+            nombre=nombre,
+            in_nombre=in_nombre,
+            min_created_at=min_created_at,
+            max_created_at=max_created_at,
+            in_created_by=in_created_by,
+            min_updated_at=min_updated_at,
+            max_updated_at=max_updated_at,
+            in_updated_by=in_updated_by,
+            rls=rls
+        )
 
-    return APIResponse.success(
-        data=result,
-        message="Verificación realizada exitosamente"
-    )
+        return APIResponse.success(
+            data=result,
+            message="Verificación realizada exitosamente"
+        )

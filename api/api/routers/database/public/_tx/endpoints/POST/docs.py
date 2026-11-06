@@ -26,6 +26,10 @@ ninguna, y el error dice cuál (`field`: `operations.<i>` o `operations.<i>.valu
   operación.
 - **El permiso de todas se comprueba antes de escribir nada**: la petición solo pide identidad,
   y una operación sin permiso es un 403 sin que se haya tocado la base de datos.
+- **Las escrituras anidadas de `values`** (las filas relacionadas que crea un `create`, y los
+  `create`/`update`/`delete` de un `update`) piden el permiso de su tabla —también antes de
+  escribir nada, con `field` `operations.<i>.values.<relación>…`— y se les aplica su RLS y su
+  propietario, como en el endpoint de la tabla.
 - `{ "$ref": "<i>.<campo>" }`, en cualquier punto de `values`, `key` o `filter`, toma el campo
   del registro que creó la operación `<i>`, que tiene que ser anterior y un `create`.
 - `key` es el valor de la clave primaria o, si es compuesta, un objeto con sus columnas.

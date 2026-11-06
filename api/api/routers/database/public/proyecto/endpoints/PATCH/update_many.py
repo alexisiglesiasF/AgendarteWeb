@@ -1,6 +1,10 @@
-from fastapi import Query
+from fastapi import Query, Depends
+from api.routers.auth import requires_permissions, build_rls_rules, AccessToken
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 
-from api.database.public import public_async_api
+from api.routers.auth import build_owner_rules, owner_locked_columns, owner_violation
+from api.database.public import public_async_api, RLS
 from api.routers.database.public._masivos import ProyectoUpdateMany
 from api.routers.database.public._filtros import con_in_vacio
 from api.resources import APIResponse, ValidationException
@@ -19,6 +23,7 @@ from api.routers.database.public._cabeceras import estricto
 async def proyecto_update_many(
     payload: ProyectoUpdateMany,
     confirm_all: bool = Query(False, description="Necesario para actualizar sin ningún filtro, es decir, todas las filas a las que alcanza tu acceso. Sin filtros y sin esto, la petición se rechaza."),
+    token: AccessToken = Depends(requires_permissions("update", "proyecto")),
     _estricto: None = Depends(estricto("proyecto", "update_many")),
 ) -> APIResponse[int]:
     """
@@ -37,13 +42,25 @@ async def proyecto_update_many(
         return APIResponse.success(data=0, message="No se encontraron registros que coincidan con los criterios")
     carga = payload.to_dao()
 
-    result = await public_async_api.proyecto.update_many(
-        carga,
+    rls = build_rls_rules(token, "public", get_model_by_name, RLS)
+    # Con una regla de propietario, un update masivo no puede cambiar de quién son las filas: ni
+    # la columna del dueño ni, si la regla llega por una relación, las claves foráneas. Fila a
+    # fila no se puede comprobar después; para eso está el PATCH por clave primaria.
+    modelo = get_model_by_name("public.proyecto")
+    bloqueadas = owner_locked_columns(
+        build_owner_rules(token, "public", get_model_by_name, RLS, model=modelo), modelo,
     )
+    if bloqueadas & set(carga.values.to_dict()):
+        raise owner_violation()
+    with username_context(token.preferred_username):
+        result = await public_async_api.proyecto.update_many(
+            carga,
+            rls=rls,
+        )
 
-    message = f"{result} Proyectos actualizados exitosamente" if result > 0 else "No se encontraron registros que coincidan con los criterios"
+        message = f"{result} Proyectos actualizados exitosamente" if result > 0 else "No se encontraron registros que coincidan con los criterios"
 
-    return APIResponse.success(
-        data=result,
-        message=message
-    )
+        return APIResponse.success(
+            data=result,
+            message=message
+        )

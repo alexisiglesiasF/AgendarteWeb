@@ -16,6 +16,16 @@ guarda en `localStorage.colorMode`, y las demás páginas lo siguen; el Swagger 
 Los tags del índice se agrupan por bloques (`tag_groups`): sistema, autenticación y un bloque
 por schema, donde cada router se ve solo por su tabla (`tag_names`).
 
+**Protección.** Con la autorización activa (`RBAC_ENABLED`, que `__main__.py` enciende) las
+páginas piden usuario y contraseña (HTTP Basic: `admin` y `API_DOCS_PWD`). En `__dev__.py`
+están abiertas. El `openapi.json` sigue público: es lo que leen los clientes generados.
+
+**Sin autorización** (`tai-api dev`) los endpoints responden sin token, y la documentación lo
+refleja (`without_auth`): el OpenAPI sale sin esquemas de seguridad ni candados, sin las rutas de
+autenticación —siguen montadas, pero documentar un login que no hace falta confunde— ni los
+modelos que solo usaban ellas, y la portada dice que la autorización está apagada. Los candados
+los ponen las dependencias de seguridad de cada endpoint, que FastAPI publica siempre.
+
 Las páginas cargan su JavaScript de jsdelivr, como el Swagger que trae FastAPI: el navegador de
 quien consulta necesita internet. Los diagramas no: van con todo incrustado.
 """
@@ -24,13 +34,19 @@ from __future__ import annotations
 import html
 import json
 import re
+import os
+import secrets
 from pathlib import Path
 from string import Template
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.openapi.docs import get_redoc_html
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from tai_alphi import Alphi
+
+from api.routers.auth.utils import rbac_activo
 
 #: Los schemas de datos generados; cada uno tiene su diagrama en `diagrams/`.
 SCHEMAS: List[str] = ["public"]
@@ -45,7 +61,31 @@ ASSETS = Path(__file__).resolve().parent / "docs_assets"
 _ASSETS = {"docs.css": "text/css", "zoom.js": "text/javascript", "triplealpha.svg": "image/svg+xml"}
 _ACTIVE = ' class="active"'
 
-router = APIRouter(include_in_schema=False)
+logger = Alphi.get_logger_by_name("tai-api")
+
+DOCS_USERNAME = "admin"
+DOCS_PASSWORD = os.getenv("API_DOCS_PWD", "admin")
+_basic = HTTPBasic(auto_error=False)
+_warned = False
+
+
+def _guard(credentials: HTTPBasicCredentials = Depends(_basic)) -> None:
+    """Con la autorización activa, las páginas piden las credenciales de la documentación."""
+    global _warned
+    if not rbac_activo():
+        return
+    if "API_DOCS_PWD" not in os.environ and not _warned:
+        logger.warning("[docs] API_DOCS_PWD no está definida: la documentación se protege con admin/admin")
+        _warned = True
+    valid = credentials is not None and (
+        secrets.compare_digest(credentials.username, DOCS_USERNAME)
+        & secrets.compare_digest(credentials.password, DOCS_PASSWORD)
+    )
+    if not valid:
+        raise HTTPException(status_code=401, detail="Credenciales requeridas", headers={"WWW-Authenticate": "Basic"})
+
+
+router = APIRouter(include_in_schema=False, dependencies=[Depends(_guard)])
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -54,7 +94,7 @@ router = APIRouter(include_in_schema=False)
 
 def secured() -> bool:
     """Si la API pide token ahora mismo: la autorización está activa (`RBAC_ENABLED`)."""
-    return False
+    return rbac_activo()
 
 
 def description(schemas: List[str], secured: bool) -> str:
@@ -63,6 +103,20 @@ def description(schemas: List[str], secured: bool) -> str:
         "API generada con tai-api sobre los schemas de tai-sql del proyecto.",
         "",
     ]
+    if secured:
+        lines += [
+            "**Autenticación.** Cada endpoint de datos exige un token *Bearer*: se obtiene en "
+            "`POST /auth/{realm}/login` y se renueva en `POST /auth/refresh`. Lo que devuelve cada "
+            "consulta depende de los permisos y las reglas de acceso a filas (RLS) del usuario.",
+            "",
+        ]
+    else:
+        lines += [
+            "**Autorización desactivada** (`tai-api dev`): los endpoints responden sin token y con "
+            "permisos de superusuario, y cada respuesta lo dice con la cabecera `X-Tai-Auth: off`. "
+            "Para probar la API con autorización: `tai-api dev --auth`.",
+            "",
+        ]
     lines += [
         "**Salud.** `GET /health` responde mientras el proceso atiende; `GET /health/ready`, "
         "cuando además responden sus dependencias.",

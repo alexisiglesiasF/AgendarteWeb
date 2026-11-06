@@ -115,8 +115,16 @@ alcanza), no se puede devolver: `data` es el entero, sin `Preference-Applied`.
 El cuerpo admite operaciones en cascada sobre las filas relacionadas: `create`, `update` y
 `delete`, en la misma transacción que el registro.
 
+**Cada escritura anidada pide el permiso de su tabla** (`<tabla>-create`, `-update` o `-delete`, a
+cualquier profundidad), además de `proyecto-update`: sin él es un 403
+`INSUFFICIENT_PERMISSIONS` con `details.required_permission` y un `field` que dice cuál
+(`eventos.create.0`), sin haber escrito nada. Y se le aplica lo mismo que en su endpoint: un
+`update` o `delete` de una fila que tu filtrado por fila (RLS o propietario) no alcanza —o que no
+existe— es un **404**, y si la tabla tiene reglas de propietario, lo que se crea o se modifica tiene
+que seguir siendo tuyo (403 `reason: OWNER`). Si algo falla, no se escribe nada.
+
 ### `eventos`
-Relación hacia **evento** (one-to-many).
+Relación hacia **evento** (one-to-many): pide `evento-create`, `-update` o `-delete` según la operación.
 
 ```json
 {
@@ -136,7 +144,7 @@ Relación hacia **evento** (one-to-many).
 }
 ```
 ### `repertorios`
-Relación hacia **repertorio** (one-to-many).
+Relación hacia **repertorio** (one-to-many): pide `repertorio-create`, `-update` o `-delete` según la operación.
 
 ```json
 {

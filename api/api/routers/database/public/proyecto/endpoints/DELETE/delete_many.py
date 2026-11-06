@@ -1,9 +1,12 @@
-from fastapi import Query
+from fastapi import Query, Depends
 from typing import Optional, List
 from datetime import datetime
 
+from api.routers.auth import requires_permissions, build_rls_rules, AccessToken
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 
-from api.database.public import public_async_api, ProyectoFilter
+from api.database.public import public_async_api, ProyectoFilter, RLS
 from api.resources import APIResponse, ValidationException
 from .docs import DELETE_MANY_RESPONSES, DELETE_MANY_SUMMARY
 from ... import proyecto_router
@@ -34,6 +37,7 @@ async def proyecto_delete_many(
     max_updated_at: Optional[datetime] = Query(None, description="Valor máximo para updated_at (incluido)"),
     in_updated_by: Optional[List[str]] = Query(None, description="Filtrar por múltiples valores de updated_by"),
     confirm_all: bool = Query(False, description="Necesario para eliminar sin ningún filtro, es decir, todas las filas a las que alcanza tu acceso. Sin filtros y sin esto, la petición se rechaza."),
+    token: AccessToken = Depends(requires_permissions("delete", "proyecto")),
     _estricto: None = Depends(estricto("proyecto", "delete_many")),
 ) -> APIResponse[int]:
     """
@@ -63,27 +67,30 @@ async def proyecto_delete_many(
             "confirm_all",
         )
 
-    result = await public_async_api.proyecto.delete_many(
-        in_id=in_id,
-        id_usuario=id_usuario,
-        in_id_usuario=in_id_usuario,
-        nombre=nombre,
-        in_nombre=in_nombre,
-        tipo=tipo,
-        in_tipo=in_tipo,
-        descripcion=descripcion,
-        in_descripcion=in_descripcion,
-        min_created_at=min_created_at,
-        max_created_at=max_created_at,
-        in_created_by=in_created_by,
-        min_updated_at=min_updated_at,
-        max_updated_at=max_updated_at,
-        in_updated_by=in_updated_by,
-    )
+    rls = build_rls_rules(token, "public", get_model_by_name, RLS)
+    with username_context(token.preferred_username):
+        result = await public_async_api.proyecto.delete_many(
+            in_id=in_id,
+            id_usuario=id_usuario,
+            in_id_usuario=in_id_usuario,
+            nombre=nombre,
+            in_nombre=in_nombre,
+            tipo=tipo,
+            in_tipo=in_tipo,
+            descripcion=descripcion,
+            in_descripcion=in_descripcion,
+            min_created_at=min_created_at,
+            max_created_at=max_created_at,
+            in_created_by=in_created_by,
+            min_updated_at=min_updated_at,
+            max_updated_at=max_updated_at,
+            in_updated_by=in_updated_by,
+            rls=rls,
+        )
 
-    message = f"{result} Proyectos eliminados exitosamente" if result > 0 else "No se encontraron registros que coincidan con los criterios"
+        message = f"{result} Proyectos eliminados exitosamente" if result > 0 else "No se encontraron registros que coincidan con los criterios"
 
-    return APIResponse.success(
-        data=result,
-        message=message
-    )
+        return APIResponse.success(
+            data=result,
+            message=message
+        )

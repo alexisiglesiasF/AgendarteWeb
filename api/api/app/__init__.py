@@ -9,6 +9,7 @@ el proyecto tiene generado. Cada pieza vive en su módulo y aquí solo se compon
 |---|---|---|
 | Salud | `health.py` | `/health`, `/health/ready` |
 | Documentación | `docs.py` | `/docs`, `/docs/diagrams/<schema>`, `/docs/swagger`, `/redoc` |
+| Autenticación y RBAC | `routers/auth/` | `/auth/...`, `/rbac/...` |
 | Datos | `routers/` | `/<schema>/...`, y `routers/custom/` si existe |
 
 Lo propio del proyecto (middlewares, eventos) va en `extensions/` —ver `extensions/README.md`—:
@@ -62,6 +63,9 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(docs.router)
+    from api.routers.auth import auth_router, CONTRACT_HASH as CONTRATO_AUTH
+
+    app.include_router(auth_router)
     from api.routers import main_router
     from api.routers.database import CONTRATO
 
@@ -69,7 +73,7 @@ def create_app() -> FastAPI:
 
     # `X-Tai-Contract`: la marca de cada schema de datos y, con autenticación, la de `/auth` y
     # `/rbac` (`auth=<hash>`).
-    contrato = ",".join(m for m in (CONTRATO, ) if m)
+    contrato = ",".join(m for m in (CONTRATO, f"auth={CONTRATO_AUTH}", ) if m)
 
     @app.middleware("http")
     async def cabeceras_de_tai(request, call_next):
@@ -77,6 +81,12 @@ def create_app() -> FastAPI:
         # contra otra versión de la API. Antes un cliente desfasado se descubría cuando algo fallaba.
         respuesta = await call_next(request)
         respuesta.headers["X-Tai-Contract"] = contrato
+        # `X-Tai-Auth: off`: la autorización está apagada (`tai-api dev`, `RBAC_ENABLED=false`) y
+        # esta respuesta no ha comprobado permisos ni RLS. El modo inseguro tiene que notarse: el
+        # cliente TypeScript lo lee y lo expone en la sesión (`authDisabled`). Se decide en cada
+        # petición, como la propia autorización: con ella encendida, la cabecera no aparece.
+        if not docs.secured():
+            respuesta.headers["X-Tai-Auth"] = "off"
         return respuesta
 
     setup_exception_handlers(app)
@@ -86,9 +96,10 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-        # Sin esto, un frontend en otro origen no puede leer la marca del contrato, ni saber si un `PATCH` con `Prefer: return=representation`
+        # Sin esto, un frontend en otro origen no puede leer la marca del contrato, ni si la
+        # autorización está apagada, ni saber si un `PATCH` con `Prefer: return=representation`
         # devolvió el registro.
-        expose_headers=["X-Tai-Contract", "Preference-Applied"],
+        expose_headers=["X-Tai-Contract", "X-Tai-Auth", "Preference-Applied"],
     )
 
     _openapi_with_groups(app)

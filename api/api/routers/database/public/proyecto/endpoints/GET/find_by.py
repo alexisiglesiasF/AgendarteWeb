@@ -1,8 +1,11 @@
-from fastapi import Query
+from fastapi import Query, Depends
 from typing import Optional, List
 from datetime import datetime
+from api.routers.auth import requires_permissions, build_rls_rules, AccessToken
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 
-from api.database.public import public_async_api, ProyectoRead
+from api.database.public import public_async_api, ProyectoRead, RLS
 from api.resources import APIResponse, RecordNotFoundException, ValidationException
 from .docs import FIND_BY_RESPONSES, FIND_BY_SUMMARY, FIND_BY_DESCRIPTION
 from ... import proyecto_router
@@ -26,6 +29,7 @@ CLAVES_UNICAS = (
 async def proyecto_find_by(
     nombre: Optional[str] = Query(None, description="De la clave (nombre)"),
     includes: List[str] = Query(None, description="Lista de relaciones a incluir en la respuesta para obtener datos relacionados. Especifica los nombres de las relaciones que deseas expandir"),
+    token: AccessToken = Depends(requires_permissions("read", "proyecto")),
     _estricto: None = Depends(estricto("proyecto", "find_by")),
 ) -> APIResponse[ProyectoRead]:
     dados = {
@@ -36,8 +40,10 @@ async def proyecto_find_by(
         raise ValidationException(
             "Se busca por una sola clave única, entera: (nombre)"
         )
+    rls = build_rls_rules(token, "public", get_model_by_name, RLS)
 
-    result = await public_async_api.proyecto.find_by(**clave, includes=includes)
+    with username_context(token.preferred_username):
+        result = await public_async_api.proyecto.find_by(**clave, includes=includes, rls=rls)
 
     if result is None:
         raise RecordNotFoundException("Proyecto")

@@ -12,8 +12,20 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from api.routers.auth import (
+    AccessToken,
+    build_owner_rules,
+    build_rls_rules,
+    owner_locked_columns,
+    owner_violation,
+    require_permission,
+    requires_authentication,
+)
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 from api.database.public import (
     public_async_api,
+    RLS,
     UsuarioCreate,
     UsuarioFilter,
     UsuarioUpdateValues,
@@ -48,7 +60,15 @@ from api.routers.database.public._masivos import (
 from api.resources import APIResponse, RecordNotFoundException, ValidationException
 from api.routers.database.public._cabeceras import estricto
 from api.routers.database.public._filtros import con_in_vacio
-from api.routers.database.public._anidados import traducir_anidada
+from api.routers.database.public._anidados import (
+    antes_de_escribir,
+    despues_de_crear,
+    despues_de_escribir,
+    en_create,
+    en_update,
+    exigir_permisos,
+    traducir_anidada,
+)
 from .docs import TX_DESCRIPTION, TX_LIMIT, TX_RESPONSES, TX_SUMMARY
 from ... import transaction_router
 
@@ -378,6 +398,19 @@ def _sin_filtro() -> ValidationException:
     )
 
 
+def _reglas(token: AccessToken) -> list:
+    """El RLS de las lecturas y escrituras sobre filas que existen, como en cada endpoint."""
+    return build_rls_rules(token, "public", get_model_by_name, RLS)
+
+
+def _propias(token: AccessToken, tabla: _Tabla) -> list:
+    """Las reglas de propietario que alcanzan a la tabla, como en cada endpoint."""
+    return build_owner_rules(
+        token, "public", get_model_by_name, RLS,
+        model=get_model_by_name(f"public.{tabla.tablename}"),
+    )
+
+
 async def _create(i, operación, tabla: _Tabla, resultados, token, session) -> Any:
     valores = _validar(i, "values", tabla.Create, _resolver(operación.values, resultados))
     try:
@@ -387,29 +420,52 @@ async def _create(i, operación, tabla: _Tabla, resultados, token, session) -> A
         # el endpoint antepone `operations.<i>`.
         traducir_anidada(error, "values.")
         raise
+    # Como `POST /<tabla>`: la fila nueva tiene que ser del usuario.
+    propias = _propias(token, tabla)
+    if propias and await tabla.dao.find(
+        **{columna: getattr(creado, columna) for columna in tabla.clave}, rls=propias, session=session,
+    ) is None:
+        raise owner_violation()
+    # Y lo que creó anidado, como en el endpoint.
+    await despues_de_crear(token, tabla.tablename, creado, valores, session, "values.")
     return creado
 
 
 async def _update(i, operación, tabla: _Tabla, resultados, token, session) -> int:
     clave = _clave(i, operación, tabla, resultados)
     valores = _validar(i, "values", tabla.UpdateValues, _resolver(operación.values, resultados))
-    if await tabla.dao.find(**clave, session=session) is None:
+    rls = _reglas(token)
+    # Como `PATCH /<tabla>/<clave>`: lo que la regla no alcanza no existe para el usuario (404).
+    if await tabla.dao.find(**clave, rls=rls, session=session) is None:
         raise RecordNotFoundException(tabla.nombre)
+    # Sus escrituras anidadas: el RLS y que cuelguen de esta fila los aplica el DAO con `rls=`;
+    # aquí, lo que hace falta para el propietario de lo creado.
+    plan = await antes_de_escribir(token, en_update(tabla.tablename, valores, "values.", clave), session)
     try:
-        resultado = await tabla.dao.update(**clave, updated_values=valores, session=session)
+        resultado = await tabla.dao.update(**clave, updated_values=valores, rls=rls, session=session)
     except Exception as error:
         traducir_anidada(error, "values.")
         raise
     if resultado == 0:
         raise RecordNotFoundException(tabla.nombre)
+    propias = _propias(token, tabla)
+    if propias:
+        cambios = valores.to_dict()
+        if await tabla.dao.find(
+            **{columna: cambios.get(columna, valor) for columna, valor in clave.items()},
+            rls=propias, session=session,
+        ) is None:
+            raise owner_violation()
+    await despues_de_escribir(token, plan, session)
     return resultado
 
 
 async def _delete(i, operación, tabla: _Tabla, resultados, token, session) -> int:
     clave = _clave(i, operación, tabla, resultados)
-    if await tabla.dao.find(**clave, session=session) is None:
+    rls = _reglas(token)
+    if await tabla.dao.find(**clave, rls=rls, session=session) is None:
         raise RecordNotFoundException(tabla.nombre)
-    resultado = await tabla.dao.delete(**clave, session=session)
+    resultado = await tabla.dao.delete(**clave, rls=rls, session=session)
     if resultado == 0:
         raise RecordNotFoundException(tabla.nombre)
     return resultado
@@ -425,7 +481,11 @@ async def _update_many(i, operación, tabla: _Tabla, resultados, token, session)
     # Un `in_` vacío no casa con ninguna fila: 0 sin llamar al DAO (`_filtros.py`).
     if con_in_vacio(carga.filter.to_dict()) is not None:
         return 0
-    return await tabla.dao.update_many(carga, session=session)
+    # Como `PATCH /<tabla>`: con una regla de propietario no se cambia de quién son las filas.
+    modelo = get_model_by_name(f"public.{tabla.tablename}")
+    if owner_locked_columns(_propias(token, tabla), modelo) & set(carga.values.to_dict()):
+        raise owner_violation()
+    return await tabla.dao.update_many(carga, rls=_reglas(token), session=session)
 
 
 async def _delete_many(i, operación, tabla: _Tabla, resultados, token, session) -> int:
@@ -443,7 +503,7 @@ async def _delete_many(i, operación, tabla: _Tabla, resultados, token, session)
         raise _sin_filtro()
     if con_in_vacio(filtro) is not None:
         return 0
-    return await tabla.dao.delete_many(**filtro, session=session)
+    return await tabla.dao.delete_many(**filtro, rls=_reglas(token), session=session)
 
 
 _OPERACIONES: Dict[str, Callable] = {
@@ -518,6 +578,8 @@ async def _responder_fallo(request: Request, indice: int, exc: Exception) -> JSO
 async def public_transaction(
     request: Request,
     transaccion: PublicTransaction,
+    # Solo identidad: el permiso es el de cada operación, y se comprueba abajo.
+    token: AccessToken = Depends(requires_authentication()),
     # El modo estricto (`X-Tai-Strict: 1`) solo añade aquí que no hay parámetros de consulta: el
     # cuerpo ya es estricto siempre (ver `_comprobar`). Último, para que un 401/403 vaya antes.
     _estricto: None = Depends(estricto("_tx", "transaction")),
@@ -528,9 +590,22 @@ async def public_transaction(
     operaciones = transaccion.operations
     _comprobar(operaciones)
 
+    # El permiso de cada operación, el de su endpoint, antes de escribir nada; y el de las tablas
+    # en las que escriben sus `values` anidados.
+    for i, operación in enumerate(operaciones):
+        try:
+            require_permission(token, ACCION[operación.op], operación.table)
+            if operación.op == "create":
+                exigir_permisos(token, en_create(operación.table, operación.values, "values."))
+            elif operación.op == "update":
+                exigir_permisos(token, en_update(operación.table, operación.values, "values."))
+        except Exception as e:
+            return await _responder_fallo(request, i, e)
+
     try:
-        async with public_async_api.session_manager.get_session() as session:
-            resultados = await _ejecutar(operaciones, None, session)
+        with username_context(token.preferred_username):
+            async with public_async_api.session_manager.get_session() as session:
+                resultados = await _ejecutar(operaciones, token, session)
     except _FalloEnOperacion as fallo:
         return await _responder_fallo(request, fallo.indice, fallo.causa)
 

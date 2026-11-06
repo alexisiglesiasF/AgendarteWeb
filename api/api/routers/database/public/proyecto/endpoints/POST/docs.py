@@ -73,9 +73,15 @@ Crea un Proyecto y devuelve el registro creado.
 ## Escrituras anidadas
 Con el registro se pueden crear filas relacionadas, en el mismo cuerpo y en la misma transacción:
 
-- `usuario`: una fila de `usuario`.
-- `eventos`: una lista de filas de `evento`.
-- `repertorios`: una lista de filas de `repertorio`.
+- `usuario`: una fila de `usuario`, que pide `usuario-create`.
+- `eventos`: una lista de filas de `evento`, que pide `evento-create`.
+- `repertorios`: una lista de filas de `repertorio`, que pide `repertorio-create`.
+
+**Cada fila anidada pide el permiso de su tabla** (`<tabla>-create`, a cualquier profundidad),
+además de `proyecto-create`. Sin él es un 403 `INSUFFICIENT_PERMISSIONS` con
+`details.required_permission` y un `field` que dice cuál (`usuario`), sin
+haber escrito nada. Si su tabla tiene reglas de propietario (`owner()`), la fila tiene que ser del
+usuario: si no, 403 `reason: OWNER` y no queda nada.
 """
 
 #: Cuántos registros admite una sola petición a `/bulk`: van todos en una transacción.
@@ -88,6 +94,9 @@ CREATE_MANY_DESCRIPTION = (
     "—un duplicado, una clave foránea, una regla de negocio—, no se crea ninguno. "
     "Devuelve los registros creados, en el mismo orden. "
     f"Admite hasta {CREATE_MANY_LIMIT} por petición; para más, se envían en varias."
+    " Las filas anidadas de cada registro piden el permiso de su tabla (`<tabla>-create`) y, si su "
+    "tabla tiene `owner()`, ser del usuario, como en `POST /proyecto`: el `field` de un 403 "
+    "lleva la posición en la lista (`3.usuario`)."
 )
 
 #: Las de `create`; en un 422 de validación, `field` lleva la posición en la lista: `3.campo`.

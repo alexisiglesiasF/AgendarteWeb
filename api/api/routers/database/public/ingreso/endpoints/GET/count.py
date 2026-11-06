@@ -1,9 +1,12 @@
-from fastapi import Query
+from fastapi import Query, Depends
 from typing import Optional, List
 from datetime import datetime
 
+from api.routers.auth import requires_permissions, build_rls_rules, AccessToken
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 
-from api.database.public import public_async_api
+from api.database.public import public_async_api, RLS
 from api.resources import APIResponse
 from .docs import COUNT_RESPONSES, COUNT_SUMMARY
 from ... import ingreso_router
@@ -34,31 +37,35 @@ async def ingreso_count(
     min_updated_at: Optional[datetime] = Query(None, description="Valor mínimo para updated_at (incluido)"),
     max_updated_at: Optional[datetime] = Query(None, description="Valor máximo para updated_at (incluido)"),
     in_updated_by: Optional[List[str]] = Query(None, description="Filtrar por múltiples valores de updated_by"),
+    token: AccessToken = Depends(requires_permissions("read", "ingreso")),
     _estricto: None = Depends(estricto("ingreso", "count")),
 ) -> APIResponse[int]:
     """
     Cuenta el número de Ingresos que coinciden con los filtros.
     """
-    result = await public_async_api.ingreso.count(
-        in_id=in_id,
-        id_evento=id_evento,
-        in_id_evento=in_id_evento,
-        nombre=nombre,
-        in_nombre=in_nombre,
-        min_importe=min_importe,
-        max_importe=max_importe,
-        recibido=recibido,
-        concepto=concepto,
-        in_concepto=in_concepto,
-        min_created_at=min_created_at,
-        max_created_at=max_created_at,
-        in_created_by=in_created_by,
-        min_updated_at=min_updated_at,
-        max_updated_at=max_updated_at,
-        in_updated_by=in_updated_by,
-    )
+    rls = build_rls_rules(token, "public", get_model_by_name, RLS)
+    with username_context(token.preferred_username):
+        result = await public_async_api.ingreso.count(
+            in_id=in_id,
+            id_evento=id_evento,
+            in_id_evento=in_id_evento,
+            nombre=nombre,
+            in_nombre=in_nombre,
+            min_importe=min_importe,
+            max_importe=max_importe,
+            recibido=recibido,
+            concepto=concepto,
+            in_concepto=in_concepto,
+            min_created_at=min_created_at,
+            max_created_at=max_created_at,
+            in_created_by=in_created_by,
+            min_updated_at=min_updated_at,
+            max_updated_at=max_updated_at,
+            in_updated_by=in_updated_by,
+            rls=rls
+        )
 
-    return APIResponse.success(
-        data=result,
-        message="Conteo realizado exitosamente"
-    )
+        return APIResponse.success(
+            data=result,
+            message="Conteo realizado exitosamente"
+        )

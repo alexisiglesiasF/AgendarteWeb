@@ -1,10 +1,13 @@
 from fastapi.exceptions import RequestValidationError
-from fastapi import Query, Path
+from fastapi import Query, Path, Depends
 from typing import Optional, List
 from datetime import datetime
 
+from api.routers.auth import requires_permissions, build_rls_rules, AccessToken
+from api.database.public import username_context
+from api.database.public._shared import get_model_by_name
 
-from api.database.public import public_async_api, AggRow
+from api.database.public import public_async_api, AggRow, RLS
 from api.resources import APIResponse
 from .docs import SUM_RESPONSES, SUM_SUMMARY
 from ... import repertorio_router
@@ -34,6 +37,7 @@ async def repertorio_sum_field(
     min_updated_at: Optional[datetime] = Query(None, description="Valor mínimo para updated_at (incluido)"),
     max_updated_at: Optional[datetime] = Query(None, description="Valor máximo para updated_at (incluido)"),
     in_updated_by: Optional[List[str]] = Query(None, description="Filtrar por múltiples valores de updated_by"),
+    token: AccessToken = Depends(requires_permissions("read", "repertorio")),
     _estricto: None = Depends(estricto("repertorio", "sum")),
 ) -> APIResponse[List[AggRow]]:
     """
@@ -61,33 +65,37 @@ async def repertorio_sum_field(
     - **in_updated_by**: Filtrar por múltiples valores de updated_by (OR lógico)
 
     """
-    result = await public_async_api.repertorio.sum(
-        agg_fields=[field],
-        in_id=in_id,
-        usuario_id=usuario_id,
-        in_usuario_id=in_usuario_id,
-        id_proyecto=id_proyecto,
-        in_id_proyecto=in_id_proyecto,
-        nombre=nombre,
-        in_nombre=in_nombre,
-        descripcion=descripcion,
-        in_descripcion=in_descripcion,
-        min_created_at=min_created_at,
-        max_created_at=max_created_at,
-        in_created_by=in_created_by,
-        min_updated_at=min_updated_at,
-        max_updated_at=max_updated_at,
-        in_updated_by=in_updated_by,
-    )
+    rls = build_rls_rules(token, "public", get_model_by_name, RLS)
 
-    if not result.success:
-        raise RequestValidationError([
-            {"type": "value_error", "loc": ("path", "field"), "msg": mensaje, "input": field}
-            for mensaje in (result.errors or result.warnings or ["La operación no se puede aplicar"])
-        ])
+    with username_context(token.preferred_username):
+        result = await public_async_api.repertorio.sum(
+            agg_fields=[field],
+            in_id=in_id,
+            usuario_id=usuario_id,
+            in_usuario_id=in_usuario_id,
+            id_proyecto=id_proyecto,
+            in_id_proyecto=in_id_proyecto,
+            nombre=nombre,
+            in_nombre=in_nombre,
+            descripcion=descripcion,
+            in_descripcion=in_descripcion,
+            min_created_at=min_created_at,
+            max_created_at=max_created_at,
+            in_created_by=in_created_by,
+            min_updated_at=min_updated_at,
+            max_updated_at=max_updated_at,
+            in_updated_by=in_updated_by,
+            rls=rls
+        )
 
-    return APIResponse.success(
-        data=result.rows,
-        message=f"Suma de '{field}' calculada exitosamente",
-        meta=result.metadata
-    )
+        if not result.success:
+            raise RequestValidationError([
+                {"type": "value_error", "loc": ("path", "field"), "msg": mensaje, "input": field}
+                for mensaje in (result.errors or result.warnings or ["La operación no se puede aplicar"])
+            ])
+
+        return APIResponse.success(
+            data=result.rows,
+            message=f"Suma de '{field}' calculada exitosamente",
+            meta=result.metadata
+        )

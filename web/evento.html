@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>Crear evento - AgendaArte</title>
+    <script src="evento.js" defer></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="pagina-app">
+    <aside class="barra-lateral">
+        <a class="marca" href="index.html" aria-label="AgendaArte, inicio">
+            <span class="icono-marca" aria-hidden="true">♪</span>
+            <span>AgendaArte</span>
+        </a>
+
+        <nav class="navegacion-lateral" aria-label="Navegación principal">
+            <a href="index.html"><span aria-hidden="true">⌂</span> Inicio</a>
+            <a class="activo" href="evento.html" aria-current="page"><span aria-hidden="true">▦</span> Calendario</a>
+            <a href="#"><span aria-hidden="true">▱</span> Proyectos</a>
+            <a href="#"><span aria-hidden="true">♫</span> Repertorios</a>
+        </nav>
+
+        <p class="texto-lateral">Tu música,<br>bien organizada.</p>
+    </aside>
+
+    <div class="contenido-app">
+        <header class="encabezado-app">
+            <div>
+                <h1>Crear evento</h1>
+                <p>Nuevo evento · Completa los detalles</p>
+            </div>
+            <span class="usuario-actual">Tu espacio de trabajo</span>
+        </header>
+
+        <main class="contenido-evento">
+            <form class="formulario-evento">
+                <section class="datos-evento" aria-label="Detalles del evento"> 
+                    <div class="email-usuario">
+                        <label for="id-usuario">ID del usuario</label>
+                        <input
+                            type="number"
+                            id="id-usuario"
+                            name="id_usuario"
+                            min="1"
+                            step="1"
+                            placeholder="Ej. 1"
+                            required
+                        >
+                    </div>
+                
+                    <div class="campo-evento">
+                        <label for="nombre-evento">Nombre del evento <span aria-hidden="true">*</span></label>
+                        <input
+                            type="text"
+                            id="nombre-evento"
+                            name="nombre"
+                            placeholder="Ej. Ensayo con la banda"
+                            required
+                        >
+                    </div>
+
+                    <div class="campo-evento">
+                        <label for="tipo-evento">Tipo de evento <span aria-hidden="true">*</span></label>
+                        <select id="tipo-evento" name="tipo" required>
+                            <option value="">Selecciona un tipo</option>
+                            <option value="show">Show</option>
+                            <option value="ensayo">Ensayo</option>
+                            <option value="grabacion">Grabación</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <div class="fila-evento">
+                        <div class="campo-evento">
+                            <label for="fecha-evento">Fecha <span aria-hidden="true">*</span></label>
+                            <input type="date" id="fecha-evento" name="fecha" required>
+                        </div>
+                        <div class="campo-evento campo-hora">
+                            <label for="hora-evento">Hora <span aria-hidden="true">*</span></label>
+                            <input type="time" id="hora-evento" name="hora" required>
+                        </div>
+                    </div>
+
+                    <div class="campo-evento">
+                        <label for="ubicacion-evento">Ubicación</label>
+                        <input
+                            type="text"
+                            id="ubicacion-evento"
+                            name="ubicacion"
+                            placeholder="Sala, local o dirección"
+                        >
+                    </div>
+
+                    <div class="campo-evento">
+                        <label for="proyecto-evento">Proyecto · opcional</label>
+                        <select id="proyecto-evento" name="id_proyecto">
+                            <option value="">Sin proyecto</option>
+                        </select>
+                        <small>No es necesario asociar este evento a un proyecto.</small>
+                    </div>
+
+                    <div class="campo-evento">
+                        <label for="estado-evento">Estado de realización</label>
+                        <select id="estado-evento" name="estado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="realizado">Realizado</option>
+                        </select>
+                    </div>
+
+                    <div class="campo-evento">
+                        <label for="notas-evento">Notas</label>
+                        <textarea
+                            id="notas-evento"
+                            name="notas"
+                            rows="3"
+                            placeholder="Detalles que quieras recordar..."
+                        ></textarea>
+                    </div>
+                </section>
+
+                <section class="finanzas-evento" aria-label="Ingresos y gastos">
+                    <div class="titulo-seccion">
+                        <h2>Ingresos</h2>
+                        <span>Estado por fila</span>
+                    </div>
+
+                    <fieldset class="fila-financiera">
+                        <legend>Ingreso 1</legend>
+                        <div class="campos-financieros">
+                            <label class="solo-lectores" for="ingreso-nombre-1">Nombre del ingreso</label>
+                            <input
+                                type="text"
+                                id="ingreso-nombre-1"
+                                name="ingreso_nombre"
+                                placeholder="Ej. Sesión de estudio"
+                            >
+                            <label class="solo-lectores" for="ingreso-importe-1">Importe del ingreso</label>
+                            <input
+                                type="number"
+                                id="ingreso-importe-1"
+                                name="ingreso_importe"
+                                min="0"
+                                step="0.01"
+                                placeholder="Importe (€)"
+                            >
+                            <label class="solo-lectores" for="ingreso-recibido-1">Estado del ingreso</label>
+                            <select id="ingreso-recibido-1" name="ingreso_recibido">
+                                <option value="false">Pendiente</option>
+                                <option value="true">Recibido</option>
+                            </select>
+                        </div>
+                    </fieldset>
+
+                    <button class="boton-secundario boton-ancho" type="button" disabled>
+                        <span aria-hidden="true">＋</span> Añadir ingreso
+                    </button>
+
+                    <div class="titulo-seccion titulo-gastos">
+                        <h2>Gastos</h2>
+                        <span>Estado por fila</span>
+                    </div>
+
+                    <fieldset class="fila-financiera">
+                        <legend>Gasto 1</legend>
+                        <div class="campos-financieros">
+                            <label class="solo-lectores" for="gasto-nombre-1">Nombre del gasto</label>
+                            <input
+                                type="text"
+                                id="gasto-nombre-1"
+                                name="gasto_nombre"
+                                placeholder="Ej. Transporte"
+                            >
+                            <label class="solo-lectores" for="gasto-importe-1">Importe del gasto</label>
+                            <input
+                                type="number"
+                                id="gasto-importe-1"
+                                name="gasto_importe"
+                                min="0"
+                                step="0.01"
+                                placeholder="Importe (€)"
+                            >
+                            <label class="solo-lectores" for="gasto-pagado-1">Estado del gasto</label>
+                            <select id="gasto-pagado-1" name="gasto_pagado">
+                                <option value="false">Pendiente</option>
+                                <option value="true">Pagado</option>
+                            </select>
+                        </div>
+                    </fieldset>
+
+                    <button class="boton-secundario boton-ancho" type="button" disabled>
+                        <span aria-hidden="true">＋</span> Añadir gasto
+                    </button>
+
+                    <p class="nota-finanzas">
+                        <span aria-hidden="true">*</span> Los ingresos y gastos se pueden asociar a este evento.
+                    </p>
+
+                    <p id="mensaje" role="status" aria-live="polite"></p>
+
+                    <div class="acciones-evento">
+                        <button class="boton-principal" type="submit">＋ Crear evento</button>
+                        <a class="boton-cancelar" href="index.html">Cancelar</a>
+                    </div>
+                </section>
+            </form>
+        </main>
+        <ul id="lista-eventos"></ul>
+    </div>
+</body>
+</html>
